@@ -13,17 +13,43 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-          # Отключаем встроенное кэширование, чтобы обойти сбой серверов GitHub
           cache: ''
 
-      # Настройка Gradle напрямую без лишних плагинов кэша
       - name: Setup Dynamic Gradle Runtime
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.7
           cache-disabled: true
 
-      # Запуск чистой компиляции
+      - name: Generate Perfect Clean AndroidManifest
+        run: |
+          mkdir -p app/src/main
+          cat << 'EOF' > app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.CAMERA" />
+              <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+              <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+              <uses-feature android:name="android.hardware.camera" android:required="true" />
+              <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+              <application
+                  android:allowBackup="true"
+                  android:label="МЕГАТРОНИК HUD"
+                  android:supportsRtl="true">
+                  <activity
+                      android:name="org.megatronik.megatronichud.MainActivity"
+                      android:exported="true"
+                      android:screenOrientation="landscape"
+                      android:configChanges="orientation|screenSize|keyboardHidden">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
       - name: Compile and Build APK Debug Package
         run: |
           gradle assembleDebug --no-daemon -Pandroid.builder.sdkDownload=true
