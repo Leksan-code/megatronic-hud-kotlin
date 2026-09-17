@@ -30,8 +30,9 @@ jobs:
         run: |
           export ANDROID_HOME=${{ github.workspace }}/android-sdk
           export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          # Принудительно соглашаемся со ВСЕМИ типами лицензий (включая превью и ndk)
+          yes | sdkmanager --licenses --sdk_root=$ANDROID_HOME
+          sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Install Dynamic Global Gradle Runtime
         run: |
