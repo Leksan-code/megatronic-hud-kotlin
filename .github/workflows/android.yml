@@ -14,26 +14,18 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      # Официальное и надежное действие, которое развернет Android SDK без скачивания битых архивов
-      - name: Setup Android SDK Tools Automatically
-        uses: android-actions/setup-android@v3
+      # Устанавливаем официальную утилиту Gradle напрямую
+      - name: Setup Dynamic Gradle Runtime
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.7
 
-      - name: Install Platforms and Build Tools
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-
-      - name: Install Dynamic Global Gradle Runtime
-        run: |
-          sudo apt-get update && sudo apt-get install -y wget unzip
-          wget -q https://gradle.org
-          sudo unzip -q gradle-8.7-bin.zip -d /opt/
-          sudo ln -sf /opt/gradle-8.7/bin/gradle /usr/bin/gradle
-          rm -f gradle-8.7-bin.zip
-
+      # Запускаем сборку. Флаг приказывает Gradle самому скачать SDK в автоматическом режиме
       - name: Compile and Build APK Debug Package
         run: |
-          gradle assembleDebug --no-daemon
+          gradle assembleDebug --no-daemon -Pandroid.builder.sdkDownload=true
+        env:
+          ANDROID_HOME: ${{ github.workspace }}/android-sdk
 
       - name: Upload Finished Megatronic APK Artifact
         uses: actions/upload-artifact@v4
