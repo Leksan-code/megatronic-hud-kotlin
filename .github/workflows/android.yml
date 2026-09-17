@@ -14,36 +14,25 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install Pure Android Command Line Tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip
-          mkdir -p android-sdk/cmdline-tools
-          wget -q https://google.com -O cmdline.zip
-          unzip -q cmdline.zip -d temp_tools
-          mv temp_tools/cmdline-tools android-sdk/cmdline-tools/latest
-          rm -rf cmdline.zip temp_tools
-        env:
-          ANDROID_HOME: ${{ github.workspace }}/android-sdk
+      # Официальное и надежное действие, которое развернет Android SDK без скачивания битых архивов
+      - name: Setup Android SDK Tools Automatically
+        uses: android-actions/setup-android@v3
 
-      - name: Download SDK Platforms and Build Tools
+      - name: Install Platforms and Build Tools
         run: |
-          export ANDROID_HOME=${{ github.workspace }}/android-sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
-          # Принудительно соглашаемся со ВСЕМИ типами лицензий (включая превью и ndk)
-          yes | sdkmanager --licenses --sdk_root=$ANDROID_HOME
-          sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Install Dynamic Global Gradle Runtime
         run: |
+          sudo apt-get update && sudo apt-get install -y wget unzip
           wget -q https://gradle.org
           sudo unzip -q gradle-8.7-bin.zip -d /opt/
-          sudo ln -s /opt/gradle-8.7/bin/gradle /usr/bin/gradle
+          sudo ln -sf /opt/gradle-8.7/bin/gradle /usr/bin/gradle
           rm -f gradle-8.7-bin.zip
 
       - name: Compile and Build APK Debug Package
         run: |
-          export ANDROID_HOME=${{ github.workspace }}/android-sdk
           gradle assembleDebug --no-daemon
 
       - name: Upload Finished Megatronic APK Artifact
