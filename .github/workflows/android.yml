@@ -13,14 +13,17 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+          # Отключаем встроенное кэширование, чтобы обойти сбой серверов GitHub
+          cache: ''
 
-      # Устанавливаем официальную утилиту Gradle напрямую
+      # Настройка Gradle напрямую без лишних плагинов кэша
       - name: Setup Dynamic Gradle Runtime
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.7
+          cache-disabled: true
 
-      # Запускаем сборку. Флаг приказывает Gradle самому скачать SDK в автоматическом режиме
+      # Запуск чистой компиляции
       - name: Compile and Build APK Debug Package
         run: |
           gradle assembleDebug --no-daemon -Pandroid.builder.sdkDownload=true
